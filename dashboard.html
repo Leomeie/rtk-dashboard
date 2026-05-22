@@ -106,7 +106,7 @@ body {
 }
 .project-card .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
 .project-card .path { font-size: 12px; color: #8b949e; margin-bottom: 12px; word-break: break-all; }
-.project-card .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.project-card .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .project-card .stat-label { font-size: 11px; color: #8b949e; }
 .project-card .stat-val { font-size: 18px; font-weight: 600; }
 .project-card .remove-btn {
@@ -215,8 +215,10 @@ const I18N = {
     empty_projects: 'No projects added yet. Add a project directory above.',
     loading_stats: 'Loading...',
     stat_commands: 'Commands',
-    stat_savings: 'Savings',
+    stat_input: 'Input',
+    stat_output: 'Output',
     stat_saved: 'Saved',
+    stat_savings: 'Savings',
     stat_time: 'Time',
     error_prefix: 'Error',
     updated: 'Updated',
@@ -249,8 +251,10 @@ const I18N = {
     empty_projects: '暂无项目，请在上方添加项目目录',
     loading_stats: '加载中...',
     stat_commands: '命令数',
+    stat_input: '输入',
+    stat_output: '输出',
+    stat_saved: '节省',
     stat_savings: '节省率',
-    stat_saved: '节省量',
     stat_time: '耗时',
     error_prefix: '错误',
     updated: '更新',
@@ -406,9 +410,11 @@ async function loadProjectStats(p) {
   const s = data.summary;
   document.getElementById('stats-' + id).innerHTML = `
     <div class="stat-item"><div class="stat-label">${t.stat_commands}</div><div class="stat-val">${s.total_commands}</div></div>
-    <div class="stat-item"><div class="stat-label">${t.stat_savings}</div><div class="stat-val green">${s.avg_savings_pct.toFixed(1)}%</div></div>
-    <div class="stat-item"><div class="stat-label">${t.stat_saved}</div><div class="stat-val blue">${fmtTokens(s.total_saved)}</div></div>
-    <div class="stat-item"><div class="stat-label">${t.stat_time}</div><div class="stat-val orange">${fmtTime(s.total_time_ms)}</div></div>
+    <div class="stat-item"><div class="stat-label">${t.stat_input}</div><div class="stat-val blue">${fmtTokens(s.total_input)}</div></div>
+    <div class="stat-item"><div class="stat-label">${t.stat_output}</div><div class="stat-val purple">${fmtTokens(s.total_output)}</div></div>
+    <div class="stat-item"><div class="stat-label">${t.stat_saved}</div><div class="stat-val green">${fmtTokens(s.total_saved)}</div></div>
+    <div class="stat-item"><div class="stat-label">${t.stat_savings}</div><div class="stat-val orange">${s.avg_savings_pct.toFixed(1)}%</div></div>
+    <div class="stat-item"><div class="stat-label">${t.stat_time}</div><div class="stat-val">${fmtTime(s.total_time_ms)}</div></div>
   `;
 }
 

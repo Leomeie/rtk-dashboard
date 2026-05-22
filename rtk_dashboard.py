@@ -37,6 +37,11 @@ def index():
     return send_file("dashboard.html")
 
 
+@app.route("/projects")
+def projects_page():
+    return send_file("projects.html")
+
+
 @app.route("/api/global")
 def api_global():
     data = run_rtk("gain", "-a", "-f", "json")
@@ -94,6 +99,63 @@ def api_project():
     finally:
         os.chdir(original)
     return jsonify(data or {"error": "Failed to fetch project data"})
+
+
+# --- OpenWolf ---
+
+def run_openwolf(path, *args):
+    try:
+        result = subprocess.run(
+            ["openwolf", *args],
+            cwd=path, capture_output=True, text=True, timeout=30, encoding="utf-8"
+        )
+        return {"stdout": result.stdout, "stderr": result.stderr, "code": result.returncode}
+    except FileNotFoundError:
+        return {"error": "openwolf not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.route("/api/openwolf/init", methods=["POST"])
+def api_openwolf_init():
+    from flask import request
+    body = request.get_json(force=True)
+    path = body.get("path", "").strip()
+    if not path or not Path(path).is_dir():
+        return jsonify({"error": f"Directory not found: {path}"}), 400
+    result = run_openwolf(path, "init")
+    return jsonify(result)
+
+
+@app.route("/api/openwolf/status")
+def api_openwolf_status():
+    from flask import request
+    path = request.args.get("path", "")
+    if not path:
+        return jsonify({"error": "path required"}), 400
+    wolf_dir = Path(path) / ".wolf"
+    if not wolf_dir.is_dir():
+        return jsonify({"initialized": False})
+    ledger_file = wolf_dir / "token-ledger.json"
+    ledger = {}
+    if ledger_file.exists():
+        try:
+            ledger = json.loads(ledger_file.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    config_file = wolf_dir / "config.json"
+    config = {}
+    if config_file.exists():
+        try:
+            config = json.loads(config_file.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return jsonify({
+        "initialized": True,
+        "ledger": ledger.get("lifetime", {}),
+        "sessions": ledger.get("sessions", []),
+        "config": config.get("openwolf", {})
+    })
 
 
 if __name__ == "__main__":

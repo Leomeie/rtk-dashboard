@@ -90,7 +90,7 @@ def api_project():
     original = os.getcwd()
     try:
         os.chdir(path)
-        data = run_rtk("gain", "-a", "-f", "json")
+        data = run_rtk("gain", "-p", "-a", "-f", "json")
     finally:
         os.chdir(original)
     return jsonify(data or {"error": "Failed to fetch project data"})

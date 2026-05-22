@@ -105,9 +105,21 @@ def api_project():
 
 def run_openwolf(path, *args):
     try:
+        env = os.environ.copy()
+        node_global = str(Path(os.environ.get("APPDATA", "")) / "npm") if os.name == "nt" else ""
+        # Common locations for openwolf binary
+        for candidate in [
+            r"D:\nodejs\node_global",
+            r"C:\Users\Luo\AppData\Roaming\npm",
+            os.path.join(os.environ.get("USERPROFILE", ""), "node_global"),
+        ]:
+            if os.path.isdir(candidate):
+                env["PATH"] = candidate + os.pathsep + env.get("PATH", "")
+                break
         result = subprocess.run(
-            ["openwolf", *args],
-            cwd=path, capture_output=True, text=True, timeout=30, encoding="utf-8"
+            "openwolf " + " ".join(str(a) for a in args),
+            cwd=path, capture_output=True, text=True, timeout=30, encoding="utf-8",
+            env=env, shell=True
         )
         return {"stdout": result.stdout, "stderr": result.stderr, "code": result.returncode}
     except FileNotFoundError:

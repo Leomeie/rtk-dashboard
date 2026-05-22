@@ -8,6 +8,10 @@
 
 A real-time web dashboard for monitoring **RTK** and **OpenWolf** token savings across all your projects.
 
+![Overview - Dashboard with RTK stats and charts](screenshot-overview.png)
+
+![Projects - Project management and OpenWolf init](screenshot-projects.png)
+
 ### What is this?
 
 When you use Claude Code, RTK runs as a background hook that intercepts CLI command output (git, ls, cat, etc.) and compresses it before sending to Claude — saving 40-90% of tokens per command. OpenWolf adds a persistent memory layer on top of that.
@@ -111,7 +115,8 @@ rtk-dashboard/
 ├── start.bat           # Windows one-click launcher
 ├── start.sh            # Mac/Linux one-click launcher
 ├── rtk_projects.json   # Saved project list (gitignored)
-└── screenshot.png      # Dashboard preview
+├── screenshot-overview.png   # Overview page screenshot
+└── screenshot-projects.png   # Projects page screenshot
 ```
 
 ### Language
@@ -123,6 +128,10 @@ Click the toggle button in the top-right to switch between English and Chinese. 
 ## 中文文档
 
 一个实时 Web 仪表盘，用于监控 **RTK** 和 **OpenWolf** 在所有项目中节省的 Token 数量。
+
+![概览 - RTK 数据和图表仪表盘](screenshot-overview.png)
+
+![项目管理 - 项目管理和 OpenWolf 初始化](screenshot-projects.png)
 
 ### 这是什么？
 

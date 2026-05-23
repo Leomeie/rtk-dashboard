@@ -1,0 +1,23 @@
+{
+  "name": "rtk-dashboard",
+  "version": "1.0.0",
+  "description": "One-click setup for RTK + OpenWolf token savings dashboard. Supports Claude Code, Codex, and OpenCode.",
+  "bin": {
+    "rtk-dashboard": "./bin/rtk-dashboard.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "rtk_dashboard.py",
+    "dashboard.html",
+    "projects.html",
+    "start.bat",
+    "start.sh"
+  ],
+  "keywords": ["rtk", "openwolf", "claude", "codex", "token", "dashboard"],
+  "author": "Leomeie",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  }
+}

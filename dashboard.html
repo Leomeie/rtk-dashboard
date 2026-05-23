@@ -18,15 +18,14 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .nav a:hover, .nav a.active { color: #e1e4e8; border-color: #58a6ff; }
 .main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
 
-/* Section */
 .section { margin-bottom: 32px; }
 .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .section-header h2 { font-size: 18px; font-weight: 600; }
 .section-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
 .tag-rtk { background: #58a6ff22; color: #58a6ff; border: 1px solid #58a6ff44; }
 .tag-wolf { background: #7c3aed22; color: #a78bfa; border: 1px solid #7c3aed44; }
+.tag-api { background: #3fb95022; color: #3fb950; border: 1px solid #3fb95044; }
 
-/* Cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .card { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 20px; }
 .card-label { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
@@ -36,17 +35,20 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .card-value.purple { color: #bc8cff; }
 .card-value.orange { color: #d29922; }
 .card-value.violet { color: #a78bfa; }
+.card-value.cyan { color: #39d2c0; }
 .card-sub { font-size: 12px; color: #8b949e; margin-top: 4px; }
 .eff-bar-wrap { margin-top: 8px; }
 .eff-bar { height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; }
 .eff-bar-fill { height: 100%; background: linear-gradient(90deg, #3fb950, #58a6ff); border-radius: 3px; transition: width 0.6s ease; }
 
-/* Charts */
 .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
 .chart-box { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 20px; }
 .chart-box h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: #c9d1d9; }
 
-/* Wolf project list */
+.model-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.model-chip { background: #21262d; border-radius: 8px; padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.model-dot { width: 8px; height: 8px; border-radius: 50%; }
+
 .wolf-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
 .wolf-item { background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 16px; }
 .wolf-item .w-name { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
@@ -58,6 +60,8 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .empty-state { text-align: center; padding: 32px; color: #484f58; font-size: 13px; }
 .btn-outline { background: transparent; border: 1px solid #30363d; color: #8b949e; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
 .btn-outline:hover { border-color: #58a6ff; color: #e1e4e8; }
+
+.standalone-notice { background: #d2992211; border: 1px solid #d2992244; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; font-size: 13px; color: #d29922; }
 
 @media (max-width: 768px) { .charts { grid-template-columns: 1fr; } .main { padding: 16px; } .header { padding: 16px; flex-wrap: wrap; gap: 12px; } }
 </style>
@@ -78,32 +82,38 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 </div>
 
 <div class="main">
-  <!-- RTK Section -->
+  <!-- Standalone notice -->
+  <div class="standalone-notice" id="standalone-notice" style="display:none">
+    <span data-i18n="standalone_msg">Standalone mode — no hook data. Install Claude Code or Codex and re-run <code>rtk-dashboard setup</code> to get real-time token tracking.</span>
+  </div>
+
+  <!-- API Token Tracking Section -->
   <div class="section">
     <div class="section-header">
-      <h2>RTK</h2>
-      <span class="section-tag tag-rtk">Rust Token Killer</span>
+      <h2>Token <span data-i18n="tracking">Tracking</span></h2>
+      <span class="section-tag tag-api">API Data</span>
     </div>
     <div class="cards">
       <div class="card">
-        <div class="card-label" data-i18n="total_commands">TOTAL COMMANDS</div>
-        <div class="card-value blue" id="total-commands">-</div>
-        <div class="card-sub" id="total-time">-</div>
+        <div class="card-label" data-i18n="total_calls">TOTAL API CALLS</div>
+        <div class="card-value blue" id="total-calls">-</div>
+        <div class="card-sub" id="total-sessions">-</div>
       </div>
       <div class="card">
-        <div class="card-label" data-i18n="tokens_saved">TOKENS SAVED</div>
-        <div class="card-value green" id="tokens-saved">-</div>
-        <div class="card-sub" id="tokens-detail">-</div>
+        <div class="card-label" data-i18n="input_tokens">INPUT TOKENS</div>
+        <div class="card-value cyan" id="input-tokens">-</div>
+        <div class="card-sub" data-i18n="input_sub">sent to model</div>
       </div>
       <div class="card">
-        <div class="card-label" data-i18n="savings_rate">SAVINGS RATE</div>
-        <div class="card-value purple" id="savings-rate">-</div>
-        <div class="eff-bar-wrap"><div class="eff-bar"><div class="eff-bar-fill" id="eff-fill" style="width:0%"></div></div></div>
+        <div class="card-label" data-i18n="output_tokens">OUTPUT TOKENS</div>
+        <div class="card-value purple" id="output-tokens">-</div>
+        <div class="card-sub" data-i18n="output_sub">generated by model</div>
       </div>
       <div class="card">
-        <div class="card-label" data-i18n="input_output">INPUT / OUTPUT</div>
-        <div class="card-value orange" id="io-tokens">-</div>
-        <div class="card-sub" data-i18n="io_sub">input vs output tokens</div>
+        <div class="card-label" data-i18n="cache_rate">CACHE HIT RATE</div>
+        <div class="card-value green" id="cache-rate">-</div>
+        <div class="eff-bar-wrap"><div class="eff-bar"><div class="eff-bar-fill" id="cache-fill" style="width:0%"></div></div></div>
+        <div class="card-sub" id="cache-detail">-</div>
       </div>
     </div>
     <div class="charts">
@@ -112,8 +122,43 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
         <canvas id="dailyChart"></canvas>
       </div>
       <div class="chart-box">
-        <h3 data-i18n="weekly_chart">Weekly Savings</h3>
+        <h3 data-i18n="weekly_chart">Weekly Trends</h3>
         <canvas id="weeklyChart"></canvas>
+      </div>
+    </div>
+    <!-- Model distribution -->
+    <div class="chart-box" id="model-box" style="display:none">
+      <h3 data-i18n="model_dist">Model Distribution</h3>
+      <div class="model-list" id="model-list"></div>
+    </div>
+  </div>
+
+  <!-- RTK Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2>RTK</h2>
+      <span class="section-tag tag-rtk">Rust Token Killer</span>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-label" data-i18n="rtk_commands">CLI COMMANDS</div>
+        <div class="card-value blue" id="rtk-commands">-</div>
+        <div class="card-sub" id="rtk-time">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" data-i18n="rtk_saved">CLI SAVED</div>
+        <div class="card-value green" id="rtk-saved">-</div>
+        <div class="card-sub" id="rtk-detail">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label" data-i18n="rtk_rate">CLI SAVINGS RATE</div>
+        <div class="card-value orange" id="rtk-rate">-</div>
+        <div class="eff-bar-wrap"><div class="eff-bar"><div class="eff-bar-fill" id="rtk-fill" style="width:0%"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-label" data-i18n="rtk_io">CLI INPUT / OUTPUT</div>
+        <div class="card-value violet" id="rtk-io">-</div>
+        <div class="card-sub" data-i18n="rtk_io_sub">compressed command output</div>
       </div>
     </div>
   </div>
@@ -155,11 +200,16 @@ const I18N = {
   en: {
     title_suffix: 'Dashboard', loading: 'Loading...',
     nav_home: 'Overview', nav_projects: 'Projects',
-    total_commands: 'TOTAL COMMANDS', tokens_saved: 'TOKENS SAVED', savings_rate: 'SAVINGS RATE',
-    input_output: 'INPUT / OUTPUT', io_sub: 'input vs output tokens',
+    tracking: 'Tracking',
+    standalone_msg: 'Standalone mode — no hook data. Install Claude Code or Codex and re-run <code>rtk-dashboard setup</code> to get real-time token tracking.',
+    total_calls: 'TOTAL API CALLS', input_tokens: 'INPUT TOKENS', output_tokens: 'OUTPUT TOKENS',
+    cache_rate: 'CACHE HIT RATE', input_sub: 'sent to model', output_sub: 'generated by model',
+    daily_chart: 'Daily Token Usage', daily_input: 'Input', daily_output: 'Output', daily_cache: 'Cache Hit',
+    weekly_chart: 'Weekly Trends', weekly_input: 'Input', weekly_output: 'Output', weekly_cache: 'Cache',
+    model_dist: 'Model Distribution',
+    rtk_commands: 'CLI COMMANDS', rtk_saved: 'CLI SAVED', rtk_rate: 'CLI SAVINGS RATE',
+    rtk_io: 'CLI INPUT / OUTPUT', rtk_io_sub: 'compressed command output',
     total_time: 'Total time', of_total: 'of', total: 'total',
-    daily_chart: 'Daily Token Usage', daily_input: 'Input', daily_output: 'Output', daily_saved: 'Saved',
-    weekly_chart: 'Weekly Savings', weekly_input: 'Input', weekly_saved: 'Saved', weekly_pct: 'Savings %',
     wolf_projects_tracked: 'PROJECTS TRACKED', wolf_projects_sub: 'with OpenWolf initialized',
     wolf_tokens_tracked: 'TOKENS TRACKED', wolf_tokens_sub: 'across all projects',
     wolf_savings: 'EST. SAVINGS', wolf_savings_sub: 'vs bare CLI usage',
@@ -170,11 +220,16 @@ const I18N = {
   zh: {
     title_suffix: '仪表盘', loading: '加载中...',
     nav_home: '概览', nav_projects: '项目管理',
-    total_commands: '总命令数', tokens_saved: '节省 TOKEN', savings_rate: '节省率',
-    input_output: '输入 / 输出', io_sub: '输入 vs 输出 token',
+    tracking: '追踪',
+    standalone_msg: '独立模式 — 无 hook 数据。安装 Claude Code 或 Codex 后重新运行 <code>rtk-dashboard setup</code> 以获取实时 token 追踪。',
+    total_calls: '总 API 调用', input_tokens: '输入 TOKEN', output_tokens: '输出 TOKEN',
+    cache_rate: '缓存命中率', input_sub: '发送给模型', output_sub: '模型生成',
+    daily_chart: '每日 Token 使用量', daily_input: '输入', daily_output: '输出', daily_cache: '缓存命中',
+    weekly_chart: '每周趋势', weekly_input: '输入', weekly_output: '输出', weekly_cache: '缓存',
+    model_dist: '模型使用分布',
+    rtk_commands: 'CLI 命令数', rtk_saved: 'CLI 节省', rtk_rate: 'CLI 节省率',
+    rtk_io: 'CLI 输入 / 输出', rtk_io_sub: '压缩后的命令输出',
     total_time: '总耗时', of_total: '共', total: 'tokens',
-    daily_chart: '每日 Token 使用量', daily_input: '输入', daily_output: '输出', daily_saved: '节省',
-    weekly_chart: '每周节省量', weekly_input: '输入', weekly_saved: '节省', weekly_pct: '节省率 %',
     wolf_projects_tracked: '已追踪项目', wolf_projects_sub: '已初始化 OpenWolf',
     wolf_tokens_tracked: '已追踪 Token', wolf_tokens_sub: '所有项目合计',
     wolf_savings: '预估节省', wolf_savings_sub: '对比原始 CLI',
@@ -186,7 +241,7 @@ const I18N = {
 
 let lang = localStorage.getItem('rtk_lang') || 'en';
 let t = I18N[lang];
-function toggleLang() { lang = lang === 'en' ? 'zh' : 'en'; localStorage.setItem('rtk_lang', lang); t = I18N[lang]; applyLang(); refresh(); loadWolf(); }
+function toggleLang() { lang = lang === 'en' ? 'zh' : 'en'; localStorage.setItem('rtk_lang', lang); t = I18N[lang]; applyLang(); refresh(); loadWolf(); loadTokens(); }
 function applyLang() {
   document.getElementById('lang-toggle').textContent = lang === 'en' ? '中文' : 'English';
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t[el.dataset.i18n] || el.textContent; });
@@ -197,90 +252,134 @@ function fmtTime(ms) { const s=ms/1000; if(s>=3600) return (s/3600).toFixed(1)+'
 
 // Charts
 let dailyChart, weeklyChart;
+const COLORS = { input: '#58a6ff', output: '#bc8cff', cache: '#39d2c0', saved: '#3fb950' };
+
 function initCharts() {
   const opts = (cb) => ({ responsive:true, maintainAspectRatio:true, plugins:{legend:{labels:{color:'#8b949e',font:{size:11}}}}, scales:{ x:{ticks:{color:'#8b949e',font:{size:10}},grid:{color:'#21262d'}}, y:{ticks:{color:'#8b949e',font:{size:10},callback:cb},grid:{color:'#21262d'}} } });
   dailyChart = new Chart(document.getElementById('dailyChart').getContext('2d'), { type:'bar', data:{labels:[],datasets:[]}, options: opts(v=>fmtTokens(v)) });
   weeklyChart = new Chart(document.getElementById('weeklyChart').getContext('2d'), { type:'bar', data:{labels:[],datasets:[]}, options: opts(v=>fmtTokens(v)) });
 }
 
-function updateCharts(data) {
-  const daily = data.daily||[];
-  dailyChart.data.labels = daily.map(d=>d.date.slice(5));
+function updateTokenCharts(data) {
+  const daily = data.daily || [];
+  dailyChart.data.labels = daily.map(d => d.date.slice(5));
   dailyChart.data.datasets = [
-    { label:t.daily_input, data:daily.map(d=>d.input_tokens), backgroundColor:'#58a6ff88', borderColor:'#58a6ff', borderWidth:1 },
-    { label:t.daily_output, data:daily.map(d=>d.output_tokens), backgroundColor:'#bc8cff88', borderColor:'#bc8cff', borderWidth:1 },
-    { label:t.daily_saved, data:daily.map(d=>d.saved_tokens), backgroundColor:'#3fb95088', borderColor:'#3fb950', borderWidth:1 }
+    { label: t.daily_input, data: daily.map(d => d.input_tokens), backgroundColor: COLORS.input+'88', borderColor: COLORS.input, borderWidth: 1 },
+    { label: t.daily_output, data: daily.map(d => d.output_tokens), backgroundColor: COLORS.output+'88', borderColor: COLORS.output, borderWidth: 1 },
+    { label: t.daily_cache, data: daily.map(d => d.cache_read_tokens), backgroundColor: COLORS.cache+'88', borderColor: COLORS.cache, borderWidth: 1 },
   ];
   dailyChart.update();
-  const weekly = data.weekly||[];
-  weeklyChart.data.labels = weekly.map(w=>w.week_start.slice(5)+'~'+w.week_end.slice(5));
+
+  const weekly = data.weekly || [];
+  weeklyChart.data.labels = weekly.map(w => w.week_start.slice(5));
   weeklyChart.data.datasets = [
-    { label:t.weekly_input, data:weekly.map(w=>w.input_tokens), backgroundColor:'#58a6ff88', borderColor:'#58a6ff', borderWidth:1 },
-    { label:t.weekly_saved, data:weekly.map(w=>w.saved_tokens), backgroundColor:'#3fb95088', borderColor:'#3fb950', borderWidth:1 },
-    { label:t.weekly_pct, data:weekly.map(w=>w.savings_pct), type:'line', yAxisID:'y1', borderColor:'#d29922', backgroundColor:'#d2992244', pointRadius:4, tension:0.3 }
+    { label: t.weekly_input, data: weekly.map(w => w.input_tokens), backgroundColor: COLORS.input+'88', borderColor: COLORS.input, borderWidth: 1 },
+    { label: t.weekly_output, data: weekly.map(w => w.output_tokens), backgroundColor: COLORS.output+'88', borderColor: COLORS.output, borderWidth: 1 },
+    { label: t.weekly_cache, data: weekly.map(w => w.cache_read_tokens), backgroundColor: COLORS.cache+'88', borderColor: COLORS.cache, borderWidth: 1 },
   ];
-  weeklyChart.options.scales.y1 = { position:'right', min:0, max:100, ticks:{color:'#d29922',callback:v=>v+'%'}, grid:{drawOnChartArea:false} };
   weeklyChart.update();
 }
 
-function updateSummary(data) {
-  const s=data.summary;
-  document.getElementById('total-commands').textContent = s.total_commands.toLocaleString();
-  document.getElementById('total-time').textContent = t.total_time+': '+fmtTime(s.total_time_ms);
-  document.getElementById('tokens-saved').textContent = fmtTokens(s.total_saved)+' tokens';
-  document.getElementById('tokens-detail').textContent = t.of_total+' '+fmtTokens(s.total_input+s.total_output)+' '+t.total;
-  document.getElementById('savings-rate').textContent = s.avg_savings_pct.toFixed(1)+'%';
-  document.getElementById('eff-fill').style.width = s.avg_savings_pct+'%';
-  document.getElementById('io-tokens').textContent = fmtTokens(s.total_input)+' / '+fmtTokens(s.total_output);
+// Token tracking data
+async function loadTokens() {
+  try {
+    const r = await fetch('/api/tokens');
+    const d = await r.json();
+    const s = d.summary;
+    if (s.total_calls === 0) {
+      document.getElementById('standalone-notice').style.display = 'block';
+      return;
+    }
+    document.getElementById('standalone-notice').style.display = 'none';
+    document.getElementById('total-calls').textContent = s.total_calls.toLocaleString();
+    document.getElementById('total-sessions').textContent = s.unique_sessions + ' sessions';
+    document.getElementById('input-tokens').textContent = fmtTokens(s.total_input_tokens);
+    document.getElementById('output-tokens').textContent = fmtTokens(s.total_output_tokens);
+    document.getElementById('cache-rate').textContent = s.cache_hit_rate + '%';
+    document.getElementById('cache-fill').style.width = s.cache_hit_rate + '%';
+    document.getElementById('cache-detail').textContent = fmtTokens(s.total_cache_read_tokens) + ' cached / ' + fmtTokens(s.total_input_tokens) + ' total';
+    updateTokenCharts(d);
+
+    // Model distribution
+    const models = s.models || {};
+    const modelEntries = Object.entries(models).sort((a, b) => b[1] - a[1]);
+    if (modelEntries.length) {
+      document.getElementById('model-box').style.display = 'block';
+      const colors = ['#58a6ff', '#bc8cff', '#39d2c0', '#d29922', '#f85149', '#3fb950'];
+      document.getElementById('model-list').innerHTML = modelEntries.map(([m, c], i) =>
+        `<div class="model-chip"><span class="model-dot" style="background:${colors[i % colors.length]}"></span>${m} (${c})</div>`
+      ).join('');
+    }
+  } catch {}
+}
+
+// RTK data
+async function loadRTK() {
+  try {
+    const r = await fetch('/api/global');
+    const d = await r.json();
+    if (d.error) return;
+    const s = d.summary;
+    document.getElementById('rtk-commands').textContent = s.total_commands.toLocaleString();
+    document.getElementById('rtk-time').textContent = t.total_time + ': ' + fmtTime(s.total_time_ms);
+    document.getElementById('rtk-saved').textContent = fmtTokens(s.total_saved) + ' tokens';
+    document.getElementById('rtk-detail').textContent = t.of_total + ' ' + fmtTokens(s.total_input + s.total_output) + ' ' + t.total;
+    document.getElementById('rtk-rate').textContent = s.avg_savings_pct.toFixed(1) + '%';
+    document.getElementById('rtk-fill').style.width = s.avg_savings_pct + '%';
+    document.getElementById('rtk-io').textContent = fmtTokens(s.total_input) + ' / ' + fmtTokens(s.total_output);
+  } catch {}
 }
 
 // OpenWolf
 async function loadWolf() {
-  const res = await fetch('/api/projects');
-  const projects = await res.json();
-  let totalTokens=0, totalSaved=0, totalBlocked=0, count=0;
-  const cards = [];
-  for (const p of projects) {
-    try {
-      const r = await fetch('/api/openwolf/status?path='+encodeURIComponent(p.path));
-      const d = await r.json();
-      if (d.initialized) {
-        count++;
-        const l=d.ledger||{};
-        totalTokens += l.total_tokens_estimated||0;
-        totalSaved += l.estimated_savings_vs_bare_cli||0;
-        totalBlocked += l.repeated_reads_blocked||0;
-        cards.push(`<div class="wolf-item">
-          <div class="w-name">${p.name}</div>
-          <div class="w-path">${p.path}</div>
-          <div class="w-stats">
-            <div><div class="w-stat-label">${t.wolf_sessions}</div><div class="w-stat-val">${l.total_sessions||0}</div></div>
-            <div><div class="w-stat-label">${t.wolf_tokens_tracked}</div><div class="w-stat-val blue">${fmtTokens(l.total_tokens_estimated||0)}</div></div>
-            <div><div class="w-stat-label">${t.wolf_savings}</div><div class="w-stat-val green">${fmtTokens(l.estimated_savings_vs_bare_cli||0)}</div></div>
-            <div><div class="w-stat-label">${t.wolf_reads}</div><div class="w-stat-val">${l.total_reads||0}</div></div>
-            <div><div class="w-stat-label">${t.wolf_writes}</div><div class="w-stat-val">${l.total_writes||0}</div></div>
-            <div><div class="w-stat-label">${t.wolf_blocked}</div><div class="w-stat-val orange">${l.repeated_reads_blocked||0}</div></div>
-          </div>
-        </div>`);
-      }
-    } catch(e){}
-  }
-  document.getElementById('wolf-count').textContent = count;
-  document.getElementById('wolf-tokens').textContent = fmtTokens(totalTokens);
-  document.getElementById('wolf-savings').textContent = fmtTokens(totalSaved);
-  document.getElementById('wolf-blocked').textContent = totalBlocked;
-  document.getElementById('wolf-list').innerHTML = cards.length ? cards.join('') : `<div class="empty-state">${t.empty_wolf}</div>`;
+  try {
+    const r = await fetch('/api/projects');
+    const projects = await r.json();
+    let totalTokens = 0, totalSaved = 0, totalBlocked = 0, count = 0;
+    const cards = [];
+    for (const p of projects) {
+      try {
+        const r2 = await fetch('/api/openwolf/status?path=' + encodeURIComponent(p.path));
+        const d = await r2.json();
+        if (d.initialized) {
+          count++;
+          const l = d.ledger || {};
+          totalTokens += l.total_tokens_estimated || 0;
+          totalSaved += l.estimated_savings_vs_bare_cli || 0;
+          totalBlocked += l.repeated_reads_blocked || 0;
+          cards.push(`<div class="wolf-item">
+            <div class="w-name">${p.name}</div>
+            <div class="w-path">${p.path}</div>
+            <div class="w-stats">
+              <div><div class="w-stat-label">${t.wolf_sessions}</div><div class="w-stat-val">${l.total_sessions || 0}</div></div>
+              <div><div class="w-stat-label">${t.wolf_tokens_tracked}</div><div class="w-stat-val blue">${fmtTokens(l.total_tokens_estimated || 0)}</div></div>
+              <div><div class="w-stat-label">${t.wolf_savings}</div><div class="w-stat-val green">${fmtTokens(l.estimated_savings_vs_bare_cli || 0)}</div></div>
+              <div><div class="w-stat-label">${t.wolf_reads}</div><div class="w-stat-val">${l.total_reads || 0}</div></div>
+              <div><div class="w-stat-label">${t.wolf_writes}</div><div class="w-stat-val">${l.total_writes || 0}</div></div>
+              <div><div class="w-stat-label">${t.wolf_blocked}</div><div class="w-stat-val orange">${l.repeated_reads_blocked || 0}</div></div>
+            </div>
+          </div>`);
+        }
+      } catch {}
+    }
+    document.getElementById('wolf-count').textContent = count;
+    document.getElementById('wolf-tokens').textContent = fmtTokens(totalTokens);
+    document.getElementById('wolf-savings').textContent = fmtTokens(totalSaved);
+    document.getElementById('wolf-blocked').textContent = totalBlocked;
+    document.getElementById('wolf-list').innerHTML = cards.length ? cards.join('') : `<div class="empty-state">${t.empty_wolf}</div>`;
+  } catch {}
 }
 
-// Refresh
+// Refresh all
 async function refresh() {
-  try { const r=await fetch('/api/global'); const d=await r.json(); if(!d.error){updateSummary(d);updateCharts(d);} } catch(e){}
-  document.getElementById('last-update').textContent = t.updated+': '+new Date().toLocaleTimeString();
+  loadTokens();
+  loadRTK();
+  loadWolf();
+  document.getElementById('last-update').textContent = t.updated + ': ' + new Date().toLocaleTimeString();
 }
 
-initCharts(); applyLang(); refresh(); loadWolf();
-setInterval(refresh, 30000);
-setInterval(loadWolf, 30000);
+initCharts(); applyLang(); refresh();
+setInterval(refresh, 15000);
 </script>
 </body>
 </html>

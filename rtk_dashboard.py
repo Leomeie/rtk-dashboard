@@ -2,9 +2,14 @@
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from flask import Flask, jsonify, send_file
+
+# Add src/ to path for aggregate module
+sys.path.insert(0, str(Path(__file__).parent / "src"))
+from aggregate import read_log, aggregate_by_day, aggregate_by_week, summary
 
 app = Flask(__name__)
 
@@ -170,6 +175,61 @@ def api_openwolf_status():
     })
 
 
+# --- Token Tracking (from hook data) ---
+
+@app.route("/api/tokens")
+def api_tokens():
+    """All token data: summary + daily + weekly."""
+    entries = read_log()
+    return jsonify({
+        "summary": summary(entries),
+        "daily": aggregate_by_day(entries),
+        "weekly": aggregate_by_week(entries),
+    })
+
+
+@app.route("/api/tokens/summary")
+def api_tokens_summary():
+    """Summary stats only."""
+    return jsonify(summary(read_log()))
+
+
+@app.route("/api/tokens/daily")
+def api_tokens_daily():
+    """Daily breakdown."""
+    return jsonify(aggregate_by_day(read_log()))
+
+
+@app.route("/api/tokens/session")
+def api_tokens_session():
+    """Current/recent session data."""
+    from flask import request
+    session_id = request.args.get("session_id", "")
+    entries = read_log()
+    if session_id:
+        entries = [e for e in entries if e.get("session_id") == session_id]
+    else:
+        # Return latest session
+        if entries:
+            latest_session = entries[-1].get("session_id", "")
+            entries = [e for e in entries if e.get("session_id") == latest_session]
+    return jsonify(summary(entries))
+
+
+@app.route("/api/tokens/log")
+def api_tokens_log():
+    """Raw log entries (last N)."""
+    from flask import request
+    limit = int(request.args.get("limit", "100"))
+    entries = read_log()
+    return jsonify(entries[-limit:])
+
+
 if __name__ == "__main__":
-    print("RTK Dashboard running at http://localhost:5678")
-    app.run(host="127.0.0.1", port=5678, debug=False)
+    port = 5678
+    if "--port" in sys.argv:
+        idx = sys.argv.index("--port")
+        if idx + 1 < len(sys.argv):
+            port = int(sys.argv[idx + 1])
+    print(f"RTK Dashboard running at http://localhost:{port}")
+    app.run(host="127.0.0.1", port=port, debug=False)

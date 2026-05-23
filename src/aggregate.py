@@ -110,7 +110,10 @@ def summary(entries):
         sessions.add(e.get("session_id", ""))
 
     total_tokens = total_input + total_output
-    cache_hit_rate = (total_cache_read / total_input * 100) if total_input > 0 else 0
+    # cache_hit_rate = cache_read / (cache_read + non_cached_input)
+    # input_tokens from API only counts non-cached tokens
+    total_input_including_cache = total_input + total_cache_read
+    cache_hit_rate = (total_cache_read / total_input_including_cache * 100) if total_input_including_cache > 0 else 0
 
     return {
         "total_calls": total_calls,

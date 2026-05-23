@@ -190,7 +190,21 @@ async function setup(options = {}) {
     warn(`Port ${options.port || 5678} occupied, using ${port}`);
   }
 
-  // 11. Start dashboard
+  // 11. Import historical data
+  log("Importing historical token data...");
+  try {
+    const importScript = path.join(dashboardDir, "src", "import-history.py");
+    if (fs.existsSync(importScript)) {
+      const result = run(`"${py.cmd || 'python'}" "${importScript}"`, { timeout: 60000 });
+      if (result) {
+        const match = result.match(/Imported (\d+) entries/);
+        if (match) ok(`Imported ${match[1]} historical entries`);
+        else ok("Historical data imported");
+      }
+    }
+  } catch {}
+
+  // 12. Start dashboard
   startDashboard(dashboardDir, port);
 
   // Summary

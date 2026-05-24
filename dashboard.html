@@ -60,6 +60,8 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .empty-state { text-align: center; padding: 32px; color: #484f58; font-size: 13px; }
 .btn-outline { background: transparent; border: 1px solid #30363d; color: #8b949e; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
 .btn-outline:hover { border-color: #58a6ff; color: #e1e4e8; }
+.btn-shutdown { background: transparent; border: 1px solid #f8514933; color: #f85149; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+.btn-shutdown:hover { background: #f8514922; border-color: #f85149; color: #f85149; }
 
 .standalone-notice { background: #d2992211; border: 1px solid #d2992244; border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; font-size: 13px; color: #d29922; }
 
@@ -76,6 +78,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
       <a href="/projects" data-i18n="nav_projects">Projects</a>
     </div>
     <button class="btn-outline" id="lang-toggle" onclick="toggleLang()">中文</button>
+    <button class="btn-shutdown" id="shutdown-btn" onclick="shutdownDashboard()" data-i18n="shutdown">Stop Server</button>
     <span class="dot"></span>
     <span id="last-update" data-i18n="loading">Loading...</span>
   </div>
@@ -216,6 +219,7 @@ const I18N = {
     wolf_blocked: 'BLOCKED REPEATS', wolf_blocked_sub: 'redundant reads prevented',
     wolf_sessions: 'Sessions', wolf_reads: 'Reads', wolf_writes: 'Writes',
     updated: 'Updated', empty_wolf: 'No OpenWolf projects found.',
+    shutdown: 'Stop Server', shutdown_confirm: 'Stop the dashboard server?',
   },
   zh: {
     title_suffix: '仪表盘', loading: '加载中...',
@@ -236,6 +240,7 @@ const I18N = {
     wolf_blocked: '重复读取拦截', wolf_blocked_sub: '阻止冗余读取',
     wolf_sessions: '会话数', wolf_reads: '读取次数', wolf_writes: '写入次数',
     updated: '更新', empty_wolf: '暂无 OpenWolf 项目',
+    shutdown: '停止服务', shutdown_confirm: '确定要停止仪表盘服务器吗？',
   }
 };
 
@@ -380,6 +385,14 @@ async function refresh() {
 
 initCharts(); applyLang(); refresh();
 setInterval(refresh, 15000);
+
+async function shutdownDashboard() {
+  if (!confirm(t.shutdown_confirm)) return;
+  try {
+    await fetch('/api/shutdown', { method: 'POST' });
+    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#8b949e;font-size:18px;">Dashboard stopped.</div>';
+  } catch {}
+}
 </script>
 </body>
 </html>

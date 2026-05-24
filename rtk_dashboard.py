@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 from flask import Flask, jsonify, send_file
@@ -223,6 +224,18 @@ def api_tokens_log():
     limit = int(request.args.get("limit", "100"))
     entries = read_log()
     return jsonify(entries[-limit:])
+
+
+# --- Shutdown ---
+
+@app.route("/api/shutdown", methods=["POST"])
+def api_shutdown():
+    def _exit():
+        import time
+        time.sleep(0.3)
+        os._exit(0)
+    threading.Thread(target=_exit, daemon=True).start()
+    return jsonify({"ok": True, "message": "Dashboard shutting down"})
 
 
 if __name__ == "__main__":
